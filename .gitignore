@@ -1,0 +1,15 @@
+# Archivos compilados y binarios
+*.exe
+*.out
+*.o
+*.cbp
+*.depend
+*.layout
+
+# Directorios generados por IDEs
+.bin/
+.vscode/
+.obj/
+
+# Archivos de configuración específicos
+config.json
