@@ -18,7 +18,7 @@ void Graph::show_graph()
   int i = 0;
   for (const auto &node : adjacency_list)
   {
-    cout << "Node: " << node.first << "\tDegree: " << degrees[i] << "\tEdges: ";
+    cout << "Vertex: " << node.first << "\tDegree: " << degrees[i] << "\tEdges: ";
     for (const auto &edge : node.second)
     {
       cout << edge << " ";
@@ -27,7 +27,7 @@ void Graph::show_graph()
     i++;
   }
 
-  cout << "\n";
+  cout << "\nTotal Degrees: " << total_degrees << "\n";
 
   cout << "Information graph\n\n";
   string msg_true = "true", msg_false = "false";
@@ -44,7 +44,7 @@ void Graph::show_graph()
 
   if (eulerian)
   {
-    cout << "\tEulerian: \t" << msg_true << "\n\n\t";
+    cout << "\t" << type << " Eulerian: \t" << msg_true << "\n\n\t";
     show_road(euler);
   }
   else
@@ -66,7 +66,14 @@ void Graph::show_road(const vector<char> road)
 
 void Graph::show_matrix()
 {
-  cout << "\n";
+  cout << "\n\t";
+  for (auto t : degrees)
+  {
+    cout << t << "\t";
+  }
+  cout << "\nTotal: " << total_degrees;
+
+  cout << "\n\n\t";
   vector<char> col(adjacency_list.size());
   int i = 0;
   for (const auto &vertex : adjacency_list)
@@ -75,7 +82,8 @@ void Graph::show_matrix()
     col.push_back(vertex.first);
   }
 
-  cout << "\n";
+  cout << "\n\n";
+
   for (const auto &row : matrix)
   {
     cout << col[i] << "\t";
@@ -85,53 +93,57 @@ void Graph::show_matrix()
     }
 
     i++;
-    cout << "\n";
+    cout << "\n\n";
   }
 }
 
 void Graph::make_matrix()
 {
-  vector<char> cmp_vertex;
-  for (const auto vertex : adjacency_list)
+  vector<char> temp_list;
+  for (const auto t : adjacency_list)
   {
-    cmp_vertex.push_back(vertex.first);
+    temp_list.push_back(t.first);
   }
 
-  vector<bool> row;
   bool flag;
   int cont;
+  vector<bool> row;
+  row.clear();
 
   for (const auto &vertex : adjacency_list)
   {
-    flag = false;
-    cont = 0;
     vector<char> edges = vertex.second;
+    cont = 0;
 
-    for (auto cmp : cmp_vertex)
+    for (auto temp_vertex : temp_list)
     {
-      int i = 0;
-      for (auto edge : edges)
+      flag = false;
+      vector<char>::iterator it;
+      do
       {
-        if (cmp == edge)
+        it = find(edges.begin(), edges.end(), temp_vertex);
+        if (it != edges.end())
         {
-          flag = true;
-          edges.erase(edges.begin() + i);
-
-          if (vertex.first != edge)
+          edges.erase(it);
+          if (vertex.first != temp_vertex)
           {
-            cont++;
+            cont ++;
           }
-          break;
+          else
+          {
+            cont += 2;
+          }
+
+          flag = true;
         }
-        i++;
-      }
+      } while (it != edges.end());
+
       row.push_back(flag);
     }
 
+    matrix.push_back(row);
     degrees.push_back(cont);
     total_degrees += cont;
-
-    matrix.push_back(row);
     row.clear();
     edges.clear();
   }
@@ -142,6 +154,7 @@ void Graph::make_matrix()
     if (t == 0)
     {
       related = false;
+      break;
     }
   }
 
@@ -183,13 +196,15 @@ bool Graph::is_eulerian()
 
     if (unpair_nodes == 0)
     {
-      do_euler();
+      type = "Circuit";
+      circuit_euler();
       return true;
     }
 
     if (unpair_nodes == 2)
     {
-      do_euler(start_last);
+      type = "Road";
+      road_euler(start_last);
       return true;
     }
   }
@@ -197,37 +212,10 @@ bool Graph::is_eulerian()
   return false;
 }
 
-map<char, vector<char>> update(char start, char last, map<char, vector<char>> list)
-{
-  auto start_it = list.find(start);
-  auto last_it = list.find(last);
-
-  vector<char>::iterator pos_last = std::find(start_it->second.begin(), start_it->second.end(), last);
-  vector<char>::iterator pos_start = std::find(last_it->second.begin(), last_it->second.end(), start);
-
-  if (start_it != list.end() && last_it != list.end())
-  {
-    int i = std::distance(start_it->second.begin(), pos_last);
-    int j = std::distance(last_it->second.begin(), pos_start);
-
-    if (i < (int) start_it->second.size())
-    {
-      start_it->second.erase(start_it->second.begin() + i);
-    }
-
-    if (j < (int) last_it->second.size())
-    {
-      last_it->second.erase(last_it->second.begin() + j);
-    }
-  }
-
-  return list;
-}
-
-void Graph::do_euler()
+void Graph::circuit_euler()
 {
   int size = total_degrees / 2;
-  char start, next, last;
+  char start, last;
   map<char, vector<char>> temp = adjacency_list;
 
   map<char, vector<char>>::iterator it = temp.begin();
@@ -235,67 +223,90 @@ void Graph::do_euler()
   start = it->first;
   last = start;
   vector<char> circuit;
-  circuit.push_back(start);
 
-  int i;
-  do
-  {
-    i = 0;
-    for (auto &node : temp)
-    {
-      if (node.first == start)
-      {
-        if (node.second.at(i) == last && node.second.size() > 2)
-        {
-          i = 1;
-        }
-        next = node.second.at(i);
-        temp = update(start, next, temp);
-        size--;
-        start = next;
-        circuit.push_back(start);
-        break;
-      }
-    }
-  } while (size > 1);
-
-  circuit.push_back(last);
-
-  euler = circuit;
+  do_euler(temp, size, start, last);
 }
 
-void Graph::do_euler(int start_last[2])
+void Graph::road_euler(int start_last[2])
 {
   int size = total_degrees / 2;
-  char start, next, last;
+  char start, last;
   map<char, vector<char>> temp = adjacency_list;
   vector<char> road;
-
+  bool f_1 = false, f_2 = false;
   int k = 0;
-  map<char, vector<char>>::iterator it = temp.begin();
-  for (; it != temp.end(); it++)
+  for (auto it = temp.begin(); it != temp.end(); it++)
   {
     if (k == start_last[0])
     {
       start = it->first;
-      break;
+      f_1 = true;
     }
-    k++;
-  }
 
-  std::advance(it, k);
-
-  for (; it != temp.end(); it++)
-  {
     if (k == start_last[1])
     {
       last = it->first;
+      f_2 = true;
     }
+
+    if (f_1 && f_2)
+    {
+      break;
+    }
+
     k++;
   }
 
+  do_euler(temp, size, start, last);
+}
+
+map<char, vector<char>> update(char start, char last, map<char, vector<char>> list)
+{
+  auto start_it = list.find(start);
+  auto last_it = list.find(last);
+
+  vector<char>::iterator pos_last = find(start_it->second.begin(), start_it->second.end(), last);
+  vector<char>::iterator pos_start = find(last_it->second.begin(), last_it->second.end(), start);
+
+  if (start_it != list.end() && last_it != list.end())
+  {
+    if (pos_last != start_it->second.end())
+    {
+      start_it->second.erase(pos_last);
+    }
+
+    if (pos_start != last_it->second.end())
+    {
+      last_it->second.erase(pos_start);
+    }
+  }
+
+  return list;
+}
+
+map<char, vector<char>> update(char start, map<char, vector<char>> list)
+{
+  auto start_it = list.find(start);
+
+  vector<char>::iterator pos = find(start_it->second.begin(), start_it->second.end(), start);
+
+  if (start_it != list.end())
+  {
+    if (pos != start_it->second.end())
+    {
+      start_it->second.erase(pos);
+    }
+  }
+
+  return list;
+}
+
+void Graph::do_euler(map<char, vector<char>> temp, int size, char start, char last)
+{
+  char next;
   int i;
-  road.push_back(start);
+
+  euler.push_back(start);
 
   do
   {
@@ -304,21 +315,29 @@ void Graph::do_euler(int start_last[2])
     {
       if (node.first == start)
       {
-        if (node.second.at(i) == last && node.second.size() > 2)
+        if (node.second.at(i) == last && node.second.size() > 1)
         {
           i = 1;
         }
-        next = node.second[i];
-        temp = update(start, next, temp);
-        size--;
+
+        next = node.second.at(i);
+        if (start != next)
+        {
+          temp = update(start, next, temp);
+          size --;
+        }
+        else
+        {
+          temp = update(next, temp);
+          size --;
+        }
+
         start = next;
-        road.push_back(start);
+        euler.push_back(start);
         break;
       }
     }
   } while (size > 1);
 
-  road.push_back(last);
-
-  euler = road;
+  euler.push_back(last);
 }

@@ -18,6 +18,8 @@ using std::set;
 using std::string;
 
 #include <algorithm>
+using std::find;
+using std::distance;
 
 class Graph
 {
@@ -26,6 +28,7 @@ class Graph
     vector<vector<bool>> matrix;
     vector<int> degrees;
     vector<char> euler;
+    string type;
     int total_degrees = 0;
     bool symmetric;
     bool related;
@@ -34,6 +37,10 @@ class Graph
     bool is_symmetric();
     bool is_eulerian();
     void make_matrix();
+    void make_matrix(int);
+    void circuit_euler();
+    void road_euler(int []);
+    void do_euler(map<char, vector<char>>, int, char, char);
 
   public:
     Graph(map<char, vector<char>>);
@@ -41,8 +48,6 @@ class Graph
     void show_graph();
     void show_matrix();
     void show_road(vector<char>);
-    void do_euler();
-    void do_euler(int[2]);
 };
 
 #endif // GRAPH_H
