@@ -15,7 +15,7 @@ void Reader::run()
   }
   else
   {
-    std::map<char, std::vector<char>> myMap;
+    std::map<char, std::vector<char>> map_input;
 
     std::string line;
     while (std::getline(input_file, line))
@@ -28,21 +28,21 @@ void Reader::run()
       if (line == "-----")
       {
         // Marca una nueva sección, crea un nuevo mapa
-        output.push_back(myMap);
-        myMap.clear();
+        output.push_back(map_input);
+        map_input.clear();
       }
       else
       {
         char key = line[0];
         std::vector<char> values;
 
-        size_t openBracePos = line.find('{');
-        if (openBracePos != std::string::npos)
+        size_t open_brace_pos = line.find('{');
+        if (open_brace_pos != std::string::npos)
         {
-          size_t closeBracePos = line.find('}', openBracePos);
-          if (closeBracePos != std::string::npos)
+          size_t close_brace_pos = line.find('}', open_brace_pos);
+          if (close_brace_pos != std::string::npos)
           {
-            std::string elements = line.substr(openBracePos + 1, closeBracePos - openBracePos - 1);
+            std::string elements = line.substr(open_brace_pos + 1, close_brace_pos - open_brace_pos - 1);
 
             size_t pos = 0;
             while ((pos = elements.find(',', pos)) != std::string::npos)
@@ -53,12 +53,12 @@ void Reader::run()
           }
         }
 
-        myMap[key] = values;
+        map_input[key] = values;
       }
     }
 
     input_file.close();
-    output.push_back(myMap);
+    output.push_back(map_input);
   }
 }
 
