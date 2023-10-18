@@ -45,6 +45,7 @@ class Graph
   public:
     Graph(map<char, vector<char>>);
     Graph();
+    ~Graph();
     void show_graph();
     void show_matrix();
     void show_road(vector<char>);

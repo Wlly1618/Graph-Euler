@@ -6,6 +6,10 @@ Graph::Graph()
   cout << "Graph example({{'x', {'y', 'z'}}, {'y', {'x', 'z'}}, {'z', {'x', 'y'}}})\n";
 }
 
+Graph::~Graph()
+{
+}
+
 Graph::Graph(map<char, vector<char>> input)
 {
   adjacency_list = input;
@@ -324,14 +328,13 @@ void Graph::do_euler(map<char, vector<char>> temp, int size, char start, char la
         if (start != next)
         {
           temp = update(start, next, temp);
-          size --;
         }
         else
         {
-          temp = update(next, temp);
-          size --;
+          temp = update(start, temp);
         }
 
+        size --;
         start = next;
         euler.push_back(start);
         break;
