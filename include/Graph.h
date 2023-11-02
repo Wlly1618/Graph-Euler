@@ -37,7 +37,6 @@ class Graph
     bool is_symmetric();
     bool is_eulerian();
     void make_matrix();
-    void make_matrix(int);
     void circuit_euler();
     void road_euler(int []);
     void do_euler(map<char, vector<char>>, int, char, char);
