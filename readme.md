@@ -114,3 +114,45 @@ if (t == 0)
 
 symmetric = is_symmetric();
 ```
+
+```c++
+void Graph::do_euler(map<char, vector<char>> temp, int size, char start, char last)
+{
+  char next;
+  int i;
+
+  euler.push_back(start);
+
+  do
+  {
+    i = 0;
+    for (auto &node : temp)
+    {
+      if (node.first == start)
+      {
+        if (node.second.at(i) == last && node.second.size() > 1)
+        {
+          i = 1;
+        }
+
+        next = node.second.at(i);
+        if (start != next)
+        {
+          temp = update(start, next, temp);
+        }
+        else
+        {
+          temp = update(start, temp);
+        }
+
+        size --;
+        start = next;
+        euler.push_back(start);
+        break;
+      }
+    }
+  } while (size > 1);
+
+  euler.push_back(last);
+}
+```
